@@ -10,8 +10,11 @@ lemmatizing/stemming
 etc
 
 ## Algorithms
+### andreea
 naive Bayes, 
+### matej
 DT, 
 Random forest, 
+### bayu
 kNN, 
 SVM
