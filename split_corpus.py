@@ -26,6 +26,7 @@ def split_corpus(corpus_file):
     train_size = int(total_lines * 0.8)
     dev_size = int(total_lines * 0.1)
 
+    random.seed(42)
     random.shuffle(lines)
     train_lines = lines[:train_size]
     dev_lines = lines[train_size:train_size + dev_size]
