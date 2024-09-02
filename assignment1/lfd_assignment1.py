@@ -3,6 +3,8 @@
 '''TODO: add high-level description of this Python script'''
 
 import argparse
+import re
+
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -19,6 +21,8 @@ def create_arg_parser():
                         help="Do sentiment analysis (2-class problem)")
     parser.add_argument("-tf", "--tfidf", action="store_true",
                         help="Use the TF-IDF vectorizer instead of CountVectorizer")
+    parser.add_argument("-c", "--classifier", default='nb',
+                        help="Classifier to use (default Naive Bayes)")
     args = parser.parse_args()
     return args
 
@@ -45,6 +49,12 @@ def identity(inp):
     return inp
 
 
+def custom_preprocessor(tokens):
+    pattern = re.compile(r"^[a-zA-Z]+(?:'\w+)?$")
+
+    return [token for token in tokens if pattern.match(token)]
+
+
 if __name__ == "__main__":
     args = create_arg_parser()
 
@@ -56,22 +66,34 @@ if __name__ == "__main__":
     # We use a dummy function as tokenizer and preprocessor,
     # since the texts are already preprocessed and tokenized.
     if args.tfidf:
-        vec = TfidfVectorizer(preprocessor=identity, tokenizer=identity)
+        vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
     else:
         # Bag of Words vectorizer
-        vec = CountVectorizer(preprocessor=identity, tokenizer=identity)
+        vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
 
-    # Combine the vectorizer with a Naive Bayes classifier
-    # Of course you have to experiment with different classifiers
-    # You can all find them through the sklearn library
-    classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
+    match args.classifier:
+        case 'nb':
+            classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
+        case 'svm':
+            from sklearn.svm import SVC
 
-    # TODO: comment this
+            classifier = Pipeline([('vec', vec), ('cls', SVC())])
+        case 'knn':
+            from sklearn.neighbors import KNeighborsClassifier
+
+            classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier())])
+        case 'dt':
+            from sklearn.tree import DecisionTreeClassifier
+
+            classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier())])
+        case 'rf':
+            from sklearn.ensemble import RandomForestClassifier
+
+            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier())])
+        case _:
+            raise ValueError(f"Invalid classifier: {args.classifier}")
+
     classifier.fit(X_train, Y_train)
-
-    # TODO: comment this
     Y_pred = classifier.predict(X_test)
-
-    # TODO: comment this
     acc = accuracy_score(Y_test, Y_pred)
     print(f"Final accuracy: {acc}")
