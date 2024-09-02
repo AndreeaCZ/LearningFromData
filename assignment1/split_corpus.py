@@ -15,8 +15,8 @@ def split_corpus(corpus_file):
     Splits the corpus into train, dev, and test files.
     The default split ratio is 80% train, 10% dev, 10% test.
 
-    Args:
-    - corpus_file (str): Path to the corpus file to be split.
+    :param corpus_file: Path to the corpus file to be split
+    :return:
     """
 
     with open(corpus_file, encoding='utf-8') as in_file:
@@ -28,6 +28,7 @@ def split_corpus(corpus_file):
 
     random.seed(42)
     random.shuffle(lines)
+
     train_lines = lines[:train_size]
     dev_lines = lines[train_size:train_size + dev_size]
     test_lines = lines[train_size + dev_size:]

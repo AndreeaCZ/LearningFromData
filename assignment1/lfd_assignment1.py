@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 '''TODO: add high-level description of this Python script'''
 
@@ -19,6 +19,8 @@ def create_arg_parser():
                         help="Do sentiment analysis (2-class problem)")
     parser.add_argument("-tf", "--tfidf", action="store_true",
                         help="Use the TF-IDF vectorizer instead of CountVectorizer")
+    parser.add_argument('-vec', '--vectorizer', default='count', type=str,
+                        help='The vectorizer to be used for the features (default count).')
     args = parser.parse_args()
     return args
 
@@ -55,11 +57,15 @@ if __name__ == "__main__":
     # Convert the texts to vectors
     # We use a dummy function as tokenizer and preprocessor,
     # since the texts are already preprocessed and tokenized.
-    if args.tfidf:
-        vec = TfidfVectorizer(preprocessor=identity, tokenizer=identity)
-    else:
-        # Bag of Words vectorizer
-        vec = CountVectorizer(preprocessor=identity, tokenizer=identity)
+
+    match args.vectorizer:
+        case 'count':
+            # Bag of Words vectorizer
+            vec = CountVectorizer(preprocessor=identity, tokenizer=identity)
+        case 'tfidf':
+            vec = TfidfVectorizer(preprocessor=identity, tokenizer=identity)
+
+
 
     # Combine the vectorizer with a Naive Bayes classifier
     # Of course you have to experiment with different classifiers
@@ -74,4 +80,9 @@ if __name__ == "__main__":
 
     # TODO: comment this
     acc = accuracy_score(Y_test, Y_pred)
-    print(f"Final accuracy: {acc}")
+
+    # Print the results with vectorizer and classifier details
+    print(f"\nVectorizer: {args.vectorizer.capitalize()}Vectorizer")
+    print(f"Vectorizer Parameters: {vec.get_params()}")
+    print(f"Classifier: MultinomialNB (Naive Bayes)")
+    print(f"Final accuracy on the test set: {acc:.4f}")
