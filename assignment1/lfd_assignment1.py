@@ -6,7 +6,7 @@ import argparse
 import re
 from random import randint
 
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -107,15 +107,20 @@ if __name__ == "__main__":
         case 'dt':
             from sklearn.tree import DecisionTreeClassifier
 
+            # PCA does not improve results here
+
             param_dist = {
-                # 'pca__n_components': [100]
             }
 
-            classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier())])
+            classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier(max_depth=30))])
         case 'rf':
             from sklearn.ensemble import RandomForestClassifier
 
-            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier())])
+            param_dist = {
+            }
+
+            # tested PCA and LSA, but both reduce accuracy
+            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
@@ -125,7 +130,7 @@ if __name__ == "__main__":
 
     print("\nBest parameters set found on development set:")
     print(param_search.best_params_)
-    print("\nMaximum accuracy found on development set:")
+    print("\nMaximum accuracy found on training set:")
     print(param_search.best_score_)
 
     Y_pred = param_search.predict(X_test)
