@@ -4,14 +4,21 @@
 
 import argparse
 import re
+from random import randint
 
+from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 
 def create_arg_parser():
+    """
+    Create argument parser with all necessary arguments.
+    To see all arguments run the script with the -h flag.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--train_file", default='train.txt', type=str,
                         help="Train file to learn from (default train.txt)")
@@ -19,8 +26,6 @@ def create_arg_parser():
                         help="Dev file to evaluate on (default dev.txt)")
     parser.add_argument("-s", "--sentiment", action="store_true",
                         help="Do sentiment analysis (2-class problem)")
-    parser.add_argument("-tf", "--tfidf", action="store_true",
-                        help="Use the TF-IDF vectorizer instead of CountVectorizer")
     parser.add_argument('-vec', '--vectorizer', default='count', type=str,
                         help='The vectorizer to be used for the features (default count).')
     parser.add_argument("-c", "--classifier", default='nb',
@@ -31,7 +36,13 @@ def create_arg_parser():
 
 
 def read_corpus(corpus_file, use_sentiment):
-    '''TODO: add function description'''
+    """
+    Read the corpus file and return the documents and labels
+
+    :param corpus_file: the path to the corpus file
+    :param use_sentiment: whether to return category or sentiment labels
+    :return: a tuple containing a list of documents and a list of labels
+    """
     documents = []
     labels = []
     with open(corpus_file, encoding='utf-8') as in_file:
@@ -53,6 +64,10 @@ def identity(inp):
 
 
 def custom_preprocessor(tokens):
+    """
+    Custom preprocessor to remove non-alphabetic tokens.
+    The RegEx pattern matches alphabetic strings while allowing optional apostrophes (n't, don't, etc.).
+    """
     pattern = re.compile(r"^[a-zA-Z]+(?:'\w+)?$")
 
     return [token for token in tokens if pattern.match(token)]
@@ -72,10 +87,11 @@ if __name__ == "__main__":
     match args.vectorizer:
         case 'count':
             # Bag of Words vectorizer
-            vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
+            vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity, token_pattern=None)
         case 'tfidf':
-            vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
-
+            vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity, token_pattern=None)
+        case _:
+            raise ValueError(f"Invalid vectorizer: {args.vectorizer}")
 
     match args.classifier:
         case 'nb':
@@ -91,6 +107,10 @@ if __name__ == "__main__":
         case 'dt':
             from sklearn.tree import DecisionTreeClassifier
 
+            param_dist = {
+                # 'pca__n_components': [100]
+            }
+
             classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier())])
         case 'rf':
             from sklearn.ensemble import RandomForestClassifier
@@ -99,12 +119,20 @@ if __name__ == "__main__":
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
-    classifier.fit(X_train, Y_train)
-    Y_pred = classifier.predict(X_test)
+    param_search = GridSearchCV(classifier, param_grid=param_dist, cv=5, n_jobs=-1, verbose=2)
+
+    param_search.fit(X_train, Y_train)
+
+    print("\nBest parameters set found on development set:")
+    print(param_search.best_params_)
+    print("\nMaximum accuracy found on development set:")
+    print(param_search.best_score_)
+
+    Y_pred = param_search.predict(X_test)
     acc = accuracy_score(Y_test, Y_pred)
 
     # Print the results with vectorizer and classifier details
     print(f"\nVectorizer: {args.vectorizer.capitalize()}Vectorizer")
     print(f"Vectorizer Parameters: {vec.get_params()}")
-    print(f"Classifier: MultinomialNB (Naive Bayes)")
+    print(f"Classifier: {args.classifier.capitalize()}")
     print(f"Final accuracy on the test set: {acc:.4f}")
