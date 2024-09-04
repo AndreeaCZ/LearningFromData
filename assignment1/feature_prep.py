@@ -97,7 +97,7 @@ def lemmatize_text(tokens):
     :param tokens: Input tokens string
     :return: Lemmatized tokens as a single string
     """
-    return (lemmatizer.lemmatize(token) for token in tokens)
+    return [lemmatizer.lemmatize(token) for token in tokens]
 
 
 def porter_stem_text(tokens):
@@ -107,7 +107,7 @@ def porter_stem_text(tokens):
     :param tokens: Input tokens string
     :return: Stemmed tokens as a single string
     """
-    return (porter_stemmer.stem(token) for token in tokens)
+    return [porter_stemmer.stem(token) for token in tokens]
 
 
 def snowball_stem_text(tokens):
@@ -117,11 +117,23 @@ def snowball_stem_text(tokens):
     :param tokens: Input tokens string
     :return: Stemmed tokens as a single string
     """
-    return (snowball_stemmer.stem(token) for token in tokens)
+    return [snowball_stemmer.stem(token) for token in tokens]
+
+
+def pos_tag_text(tokens):
+    """
+    Tags the input tokens with POS tags.
+
+    :param tokens: Input tokens list
+    :return: Tagged tokens as a list of strings with tags
+    """
+    pos_tags = nltk.pos_tag(tokens)
+    return [f"{word}_{tag}" for word, tag in pos_tags]
 
 
 nltk.download('punkt')
 nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger_eng')
 
 lemmatizer = WordNetLemmatizer()
 porter_stemmer = PorterStemmer()
@@ -137,7 +149,8 @@ def test_preprocessing(X_train, Y_train, X_test, Y_test, tokenizer):
     ])
 
     param_grid = {
-        'vec__preprocessor': [lemmatize_text, porter_stem_text, snowball_stem_text],
+        'vec__preprocessor': [lemmatize_text, porter_stem_text, snowball_stem_text, pos_tag_text],
     }
 
     test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid)
+
