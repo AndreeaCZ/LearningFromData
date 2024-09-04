@@ -171,7 +171,7 @@ if __name__ == "__main__":
         case 'all':
             classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(estimators=[
                 ('nb', MultinomialNB()),
-                ('svm', SVC(kernel='linear')), #0.9010416666666666
+                ('svm', SVC(kernel='linear')), 
                 ('knn', KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean')),
                 # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
