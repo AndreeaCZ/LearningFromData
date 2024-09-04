@@ -4,17 +4,21 @@
 
 import argparse
 import re
+from random import randint
 
+from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
 from feature_prep import test_vec_parameters, test_combining_vecs
+from sklearn.model_selection import GridSearchCV
 
 
 def create_arg_parser():
     """
-    Creates an arguments parser and returns the arguments for the current run.
+    Create argument parser with all necessary arguments.
+    To see all arguments run the script with the -h flag.
 
     :return: The arguments for the current run
     """
@@ -25,8 +29,6 @@ def create_arg_parser():
                         help="Dev file to evaluate on (default dev.txt)")
     parser.add_argument("-s", "--sentiment", action="store_true",
                         help="Do sentiment analysis (2-class problem)")
-    parser.add_argument("-tf", "--tfidf", action="store_true",
-                        help="Use the TF-IDF vectorizer instead of CountVectorizer")
     parser.add_argument('-features', '--test_features', action='store_true',
                         help='Test the best way to prepare the features.')
     # parser.add_argument('-v', '--vectorizer', default='count', type=str,
@@ -97,6 +99,10 @@ def identity(inp):
 
 
 def custom_preprocessor(tokens):
+    """
+    Custom preprocessor to remove non-alphabetic tokens.
+    The RegEx pattern matches alphabetic strings while allowing optional apostrophes (n't, don't, etc.).
+    """
     pattern = re.compile(r"^[a-zA-Z]+(?:'\w+)?$")
 
     return [token for token in tokens if pattern.match(token)]
@@ -152,23 +158,46 @@ if __name__ == "__main__":
             from sklearn.neighbors import KNeighborsClassifier
 
             classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier())])
+
+            param_dist ={
+                'k' : [1, 3, 5, 7, 9, 11], # the number of k
+                'weights' : ['uniform', 'distance'], #weight function for data points
+                'distance' : ['euclidean', 'manhattan', 'minowski']
+            }
         case 'dt':
             from sklearn.tree import DecisionTreeClassifier
 
-            classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier())])
+            # PCA does not improve results here
+
+            param_dist = {
+            }
+
+            classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier(max_depth=30))])
         case 'rf':
             from sklearn.ensemble import RandomForestClassifier
 
-            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier())])
+            param_dist = {
+            }
+
+            # tested PCA and LSA, but both reduce accuracy
+            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
-    classifier.fit(X_train, Y_train)
-    Y_pred = classifier.predict(X_test)
+    param_search = GridSearchCV(classifier, param_grid=param_dist, cv=5, n_jobs=-1, verbose=2)
+
+    param_search.fit(X_train, Y_train)
+
+    print("\nBest parameters set found on development set:")
+    print(param_search.best_params_)
+    print("\nMaximum accuracy found on training set:")
+    print(param_search.best_score_)
+
+    Y_pred = param_search.predict(X_test)
     acc = accuracy_score(Y_test, Y_pred)
 
     # Print the results with vectorizer and classifier details
     print(f"\nVectorizer: {args.vectorizer.capitalize()}Vectorizer")
     print(f"Vectorizer Parameters: {vec.get_params()}")
-    print(f"Classifier: MultinomialNB (Naive Bayes)")
+    print(f"Classifier: {args.classifier.capitalize()}")
     print(f"Final accuracy on the test set: {acc:.4f}")
