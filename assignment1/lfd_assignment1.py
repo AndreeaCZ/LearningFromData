@@ -158,20 +158,12 @@ if __name__ == "__main__":
             classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
             param_dist = {
                 'cls__alpha': [0.1, 0.5, 1, 2, 5],
-                'cls__fit_prior': [True, False],
+                'cls__fit_prior': [True, False]
             }
         case 'svm':
-
-            classifier = Pipeline([('vec', vec), ('cls', SVC())])
+            classifier = Pipeline([('vec', vec), ('cls', SVC(kernel='linear'))])
         case 'knn':
-
-            classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier())])
-
-            param_dist = {
-                'cls__n_value' : [1, 3, 5, 7, 9, 11], # the number of k
-                'cls__weights' : ['uniform', 'distance'], # weight function for data points
-                'cls__metric' : ['euclidean', 'manhattan', 'minkowski']
-            }
+            classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean'))])
         case 'dt':
             classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier(max_depth=30))])
         case 'rf':
@@ -179,8 +171,8 @@ if __name__ == "__main__":
         case 'all':
             classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(estimators=[
                 ('nb', MultinomialNB()),
-                ('svm', SVC(probability=True)),
-                ('knn', KNeighborsClassifier()),
+                ('svm', SVC(kernel='linear')), #0.9010416666666666
+                ('knn', KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean')),
                 # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
             ]))])
