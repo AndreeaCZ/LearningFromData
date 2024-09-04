@@ -152,6 +152,7 @@ if __name__ == "__main__":
 
     vec = get_default_vectorizer()
 
+    param_dist = {}
     match args.classifier:
         case 'nb':
             classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
@@ -180,12 +181,12 @@ if __name__ == "__main__":
                 ('nb', MultinomialNB()),
                 ('svm', SVC(probability=True)),
                 ('knn', KNeighborsClassifier()),
-                ('dt', DecisionTreeClassifier(max_depth=30)),
+                # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
             ]))])
 
             param_dist = {
-                'cls__voting': ['hard', 'soft'],
+                'cls__voting': ['soft'],
             }
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
