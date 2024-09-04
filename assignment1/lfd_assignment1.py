@@ -7,10 +7,15 @@ import re
 from random import randint
 
 from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+
 from feature_prep import test_vec_parameters, test_combining_vecs, test_preprocessing
 from sklearn.model_selection import GridSearchCV
 
@@ -114,12 +119,13 @@ def get_default_vectorizer():
 
     :return: The default vectorizer
     """
-    return CountVectorizer(
+    return TfidfVectorizer(
         max_df=0.9,
         ngram_range=(1, 1),
         max_features=10000,
         preprocessor=custom_preprocessor,
-        tokenizer=identity
+        tokenizer=identity,
+        token_pattern=None
     )
 
 
@@ -154,36 +160,33 @@ if __name__ == "__main__":
                 'cls__fit_prior': [True, False],
             }
         case 'svm':
-            from sklearn.svm import SVC
 
             classifier = Pipeline([('vec', vec), ('cls', SVC())])
         case 'knn':
-            from sklearn.neighbors import KNeighborsClassifier
 
             classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier())])
 
-            param_dist ={
+            param_dist = {
                 'cls__n_value' : [1, 3, 5, 7, 9, 11], # the number of k
                 'cls__weights' : ['uniform', 'distance'], # weight function for data points
                 'cls__metric' : ['euclidean', 'manhattan', 'minkowski']
             }
         case 'dt':
-            from sklearn.tree import DecisionTreeClassifier
-
-            # PCA does not improve results here
-
-            param_dist = {
-            }
-
             classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier(max_depth=30))])
         case 'rf':
-            from sklearn.ensemble import RandomForestClassifier
+            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
+        case 'all':
+            classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(estimators=[
+                ('nb', MultinomialNB()),
+                ('svm', SVC(probability=True)),
+                ('knn', KNeighborsClassifier()),
+                ('dt', DecisionTreeClassifier(max_depth=30)),
+                ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
+            ]))])
 
             param_dist = {
+                'cls__voting': ['hard', 'soft'],
             }
-
-            # tested PCA and LSA, but both reduce accuracy
-            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
