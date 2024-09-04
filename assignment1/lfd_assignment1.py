@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
-from feature_prep import test_vec_parameters, test_combining_vecs
+from feature_prep import test_vec_parameters, test_combining_vecs, test_preprocessing
 from sklearn.model_selection import GridSearchCV
 
 
@@ -132,7 +132,8 @@ if __name__ == "__main__":
         #     Y_test,
         #     [custom_preprocessor, identity],
         #     identity)
-        test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
+        # test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
+        test_preprocessing(X_train, Y_train, X_test, Y_test, identity)
 
         exit()
 

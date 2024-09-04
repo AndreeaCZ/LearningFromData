@@ -110,3 +110,20 @@ weighted avg       0.88      0.87      0.87       600
 
 ----------------------------------------
 
+For finding preprocessors:
+Best parameters found:
+{'vec__preprocessor': <function porter_stem_text at 0x12f5a7910>}
+
+Classification Report:
+              precision    recall  f1-score   support
+
+       books       0.94      0.89      0.91        90
+      camera       0.86      0.90      0.88       112
+         dvd       0.90      0.87      0.88       101
+      health       0.93      0.86      0.90        94
+       music       0.94      0.93      0.93       114
+    software       0.84      0.93      0.88        89
+
+    accuracy                           0.90       600
+   macro avg       0.90      0.90      0.90       600
+weighted avg       0.90      0.90      0.90       600

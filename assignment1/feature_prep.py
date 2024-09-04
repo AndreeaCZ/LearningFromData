@@ -5,6 +5,21 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline, FeatureUnion
+from nltk.stem import WordNetLemmatizer, PorterStemmer, SnowballStemmer
+import nltk
+
+
+def test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid):
+    grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1, verbose=1)
+
+    grid_search.fit(X_train, Y_train)
+
+    print("Best parameters found:")
+    print(grid_search.best_params_)
+
+    Y_pred = grid_search.predict(X_test)
+    print("\nClassification Report:")
+    print(classification_report(Y_test, Y_pred))
 
 
 def test_vec_parameters(X_train, Y_train, X_test, Y_test, preprocessors, tokenizer):
@@ -36,15 +51,7 @@ def test_vec_parameters(X_train, Y_train, X_test, Y_test, preprocessors, tokeniz
         }
     ]
 
-    grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1, verbose=2)
-    grid_search.fit(X_train, Y_train)
-
-    print("Best parameters found:")
-    print(grid_search.best_params_)
-
-    Y_pred = grid_search.predict(X_test)
-    print("\nClassification Report:")
-    print(classification_report(Y_test, Y_pred))
+    test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid)
 
 
 def test_combining_vecs(X_train, Y_train, X_test, Y_test, preprocessor, tokenizer):
@@ -80,13 +87,57 @@ def test_combining_vecs(X_train, Y_train, X_test, Y_test, preprocessor, tokenize
         'features__tfidf__ngram_range': [(1, 1), (1, 2), (2, 2)],
     }
 
-    grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1, verbose=1)
+    test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid)
 
-    grid_search.fit(X_train, Y_train)
 
-    print("Best parameters found:")
-    print(grid_search.best_params_)
+def lemmatize_text(tokens):
+    """
+    Lemmatizes the input tokens using WordNetLemmatizer.
 
-    Y_pred = grid_search.predict(X_test)
-    print("\nClassification Report:")
-    print(classification_report(Y_test, Y_pred))
+    :param tokens: Input tokens string
+    :return: Lemmatized tokens as a single string
+    """
+    return (lemmatizer.lemmatize(token) for token in tokens)
+
+
+def porter_stem_text(tokens):
+    """
+    Stems the input tokens using PorterStemmer.
+
+    :param tokens: Input tokens string
+    :return: Stemmed tokens as a single string
+    """
+    return (porter_stemmer.stem(token) for token in tokens)
+
+
+def snowball_stem_text(tokens):
+    """
+    Stems the input tokens using SnowballStemmer.
+
+    :param tokens: Input tokens string
+    :return: Stemmed tokens as a single string
+    """
+    return (snowball_stemmer.stem(token) for token in tokens)
+
+
+nltk.download('punkt')
+nltk.download('wordnet')
+
+lemmatizer = WordNetLemmatizer()
+porter_stemmer = PorterStemmer()
+snowball_stemmer = SnowballStemmer("english")
+
+
+def test_preprocessing(X_train, Y_train, X_test, Y_test, tokenizer):
+    vectorizer = CountVectorizer(max_df=0.9, ngram_range=(1, 1), max_features=10000, tokenizer=tokenizer)
+
+    pipeline = Pipeline([
+        ('vec', vectorizer),
+        ('cls', MultinomialNB())
+    ])
+
+    param_grid = {
+        'vec__preprocessor': [lemmatize_text, porter_stem_text, snowball_stem_text],
+    }
+
+    test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid)
