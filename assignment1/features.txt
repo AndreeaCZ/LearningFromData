@@ -86,3 +86,27 @@ Classification Report:
     accuracy                           0.82       600
    macro avg       0.82      0.82      0.82       600
 weighted avg       0.82      0.82      0.82       600
+
+
+----------------------------------------
+
+For combining the vectorizers:
+Best parameters found:
+{'features__count__max_df': 0.9, 'features__count__ngram_range': (1, 1), 'features__tfidf__max_df': 1.0, 'features__tfidf__ngram_range': (1, 1)}
+
+Classification Report:
+              precision    recall  f1-score   support
+
+       books       0.90      0.90      0.90        90
+      camera       0.77      0.92      0.84       112
+         dvd       0.88      0.87      0.88       101
+      health       1.00      0.65      0.79        94
+       music       0.95      0.93      0.94       114
+    software       0.78      0.91      0.84        89
+
+    accuracy                           0.87       600
+   macro avg       0.88      0.86      0.86       600
+weighted avg       0.88      0.87      0.87       600
+
+----------------------------------------
+

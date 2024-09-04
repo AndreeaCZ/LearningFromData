@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
-from feature_prep import test_vec_parameters
+from feature_prep import test_vec_parameters, test_combining_vecs
 
 
 def create_arg_parser():
@@ -29,8 +29,8 @@ def create_arg_parser():
                         help="Use the TF-IDF vectorizer instead of CountVectorizer")
     parser.add_argument('-features', '--test_features', action='store_true',
                         help='Test the best way to prepare the features.')
-    parser.add_argument('-v', '--vectorizer', default='count', type=str,
-                        help='The vectorizer to be used for the features (default count).')
+    # parser.add_argument('-v', '--vectorizer', default='count', type=str,
+    #                     help='The vectorizer to be used for the features (default count).')
     parser.add_argument("-c", "--classifier", default='nb',
                         help="Classifier to use (default Naive Bayes)")
 
@@ -102,6 +102,15 @@ def custom_preprocessor(tokens):
     return [token for token in tokens if pattern.match(token)]
 
 
+def get_default_vectorizer():
+    """
+    Returns the vectorizer setup which was found most effective during feature testing.
+
+    :return: The default vectorizer
+    """
+    return CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
+
+
 if __name__ == "__main__":
     args = create_arg_parser()
 
@@ -110,23 +119,27 @@ if __name__ == "__main__":
     X_test, Y_test = read_corpus(args.dev_file, args.sentiment)
 
     if args.test_features:
-        test_vec_parameters(
-            X_train,
-            Y_train,
-            X_test,
-            Y_test,
-            [custom_preprocessor, identity],
-            identity)
+        # test_vec_parameters(
+        #     X_train,
+        #     Y_train,
+        #     X_test,
+        #     Y_test,
+        #     [custom_preprocessor, identity],
+        #     identity)
+        test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
+
         exit()
 
-    match args.vectorizer:
-        case 'count':
-            # Bag of Words vectorizer
-            vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
-        case 'tfidf':
-            vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
-        case _:
-            raise ValueError(f"Invalid vectorizer: {args.vectorizer}")
+    # match args.vectorizer:
+    #     case 'count':
+    #         # Bag of Words vectorizer
+    #         vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
+    #     case 'tfidf':
+    #         vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
+    #     case _:
+    #         raise ValueError(f"Invalid vectorizer: {args.vectorizer}")
+
+    vec = get_default_vectorizer()
 
     match args.classifier:
         case 'nb':
