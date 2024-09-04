@@ -10,6 +10,17 @@ import nltk
 
 
 def test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid):
+    """
+    Used for running and printing the results of GridSearchCV.
+
+    :param X_train: Training set
+    :param Y_train: Training labels
+    :param X_test: Testing set
+    :param Y_test: Testing labels
+    :param pipeline: The pipeline to be used
+    :param param_grid: The param grid to be tested
+    :return:
+    """
     grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1, verbose=1)
 
     grid_search.fit(X_train, Y_train)

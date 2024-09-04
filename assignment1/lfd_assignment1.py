@@ -130,16 +130,17 @@ if __name__ == "__main__":
     X_train, Y_train = read_corpus(args.train_file, args.sentiment)
     X_test, Y_test = read_corpus(args.dev_file, args.sentiment)
 
+    # This takes a very long time to run!
     if args.test_features:
-        # test_vec_parameters(
-        #     X_train,
-        #     Y_train,
-        #     X_test,
-        #     Y_test,
-        #     [custom_preprocessor, identity],
-        #     identity)
-        # test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
-        # test_preprocessing(X_train, Y_train, X_test, Y_test, identity)
+        test_vec_parameters(
+            X_train,
+            Y_train,
+            X_test,
+            Y_test,
+            [custom_preprocessor, identity],
+            identity)
+        test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
+        test_preprocessing(X_train, Y_train, X_test, Y_test, identity)
 
         exit()
 
