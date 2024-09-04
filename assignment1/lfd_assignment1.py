@@ -104,6 +104,12 @@ if __name__ == "__main__":
             from sklearn.neighbors import KNeighborsClassifier
 
             classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier())])
+
+            param_dist ={
+                'k' : [1, 3, 5, 7, 9, 11], # the number of k
+                'weights' : ['uniform', 'distance'], #weight function for data points
+                'distance' : ['euclidean', 'manhattan', 'minowski']
+            }
         case 'dt':
             from sklearn.tree import DecisionTreeClassifier
 
