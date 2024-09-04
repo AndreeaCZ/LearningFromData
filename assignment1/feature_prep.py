@@ -94,8 +94,8 @@ def lemmatize_text(tokens):
     """
     Lemmatizes the input tokens using WordNetLemmatizer.
 
-    :param tokens: Input tokens string
-    :return: Lemmatized tokens as a single string
+    :param tokens: Input tokens
+    :return: Lemmatized tokens
     """
     return [lemmatizer.lemmatize(token) for token in tokens]
 
@@ -104,8 +104,8 @@ def porter_stem_text(tokens):
     """
     Stems the input tokens using PorterStemmer.
 
-    :param tokens: Input tokens string
-    :return: Stemmed tokens as a single string
+    :param tokens: Input tokens
+    :return: Stemmed tokens
     """
     return [porter_stemmer.stem(token) for token in tokens]
 
@@ -114,8 +114,8 @@ def snowball_stem_text(tokens):
     """
     Stems the input tokens using SnowballStemmer.
 
-    :param tokens: Input tokens string
-    :return: Stemmed tokens as a single string
+    :param tokens: Input tokens
+    :return: Stemmed tokens
     """
     return [snowball_stemmer.stem(token) for token in tokens]
 
@@ -124,8 +124,8 @@ def pos_tag_text(tokens):
     """
     Tags the input tokens with POS tags.
 
-    :param tokens: Input tokens list
-    :return: Tagged tokens as a list of strings with tags
+    :param tokens: Input tokens
+    :return: Tagged tokens
     """
     pos_tags = nltk.pos_tag(tokens)
     return [f"{word}_{tag}" for word, tag in pos_tags]

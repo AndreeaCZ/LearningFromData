@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 from feature_prep import test_vec_parameters, test_combining_vecs, test_preprocessing
 from sklearn.model_selection import GridSearchCV
 
@@ -114,7 +114,13 @@ def get_default_vectorizer():
 
     :return: The default vectorizer
     """
-    return CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
+    return CountVectorizer(
+        max_df=0.9,
+        ngram_range=(1, 1),
+        max_features=10000,
+        preprocessor=custom_preprocessor,
+        tokenizer=identity
+    )
 
 
 if __name__ == "__main__":
@@ -133,24 +139,19 @@ if __name__ == "__main__":
         #     [custom_preprocessor, identity],
         #     identity)
         # test_combining_vecs(X_train, Y_train, X_test, Y_test, custom_preprocessor, identity)
-        test_preprocessing(X_train, Y_train, X_test, Y_test, identity)
+        # test_preprocessing(X_train, Y_train, X_test, Y_test, identity)
 
         exit()
-
-    # match args.vectorizer:
-    #     case 'count':
-    #         # Bag of Words vectorizer
-    #         vec = CountVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
-    #     case 'tfidf':
-    #         vec = TfidfVectorizer(preprocessor=custom_preprocessor, tokenizer=identity)
-    #     case _:
-    #         raise ValueError(f"Invalid vectorizer: {args.vectorizer}")
 
     vec = get_default_vectorizer()
 
     match args.classifier:
         case 'nb':
             classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
+            param_dist = {
+                'cls__alpha': [0.1, 0.5, 1, 2, 5],
+                'cls__fit_prior': [True, False],
+            }
         case 'svm':
             from sklearn.svm import SVC
 
@@ -195,10 +196,5 @@ if __name__ == "__main__":
     print(param_search.best_score_)
 
     Y_pred = param_search.predict(X_test)
-    acc = accuracy_score(Y_test, Y_pred)
-
-    # Print the results with vectorizer and classifier details
-    print(f"\nVectorizer: {args.vectorizer.capitalize()}Vectorizer")
-    print(f"Vectorizer Parameters: {vec.get_params()}")
-    print(f"Classifier: {args.classifier.capitalize()}")
-    print(f"Final accuracy on the test set: {acc:.4f}")
+    print("\nClassification Report:")
+    print(classification_report(Y_test, Y_pred))
