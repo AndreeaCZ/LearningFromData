@@ -1,3 +1,4 @@
+import ssl
 from itertools import product
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -141,6 +142,9 @@ def pos_tag_text(tokens):
     pos_tags = nltk.pos_tag(tokens)
     return [f"{word}_{tag}" for word, tag in pos_tags]
 
+
+# necessary because nltk.download throws errors otherwise
+ssl._create_default_https_context = ssl._create_unverified_context
 
 nltk.download('punkt')
 nltk.download('wordnet')

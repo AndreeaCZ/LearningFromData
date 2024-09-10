@@ -169,17 +169,17 @@ if __name__ == "__main__":
         case 'rf':
             classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
         case 'all':
-            classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(estimators=[
+            classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(voting='soft', estimators=[
                 ('nb', MultinomialNB()),
+<<<<<<< HEAD
                 ('svm', SVC(probability=True, kernel='linear')), 
+=======
+                ('svm', SVC(kernel='linear', probability=True)),
+>>>>>>> f466366def7cb13f9d3f0c7b6fcd4eb5a27f0deb
                 ('knn', KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean')),
                 # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
             ]))])
-
-            param_dist = {
-                'cls__voting': ['soft'],
-            }
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
