@@ -161,9 +161,7 @@ if __name__ == "__main__":
                 'cls__fit_prior': [True, False]
             }
         case 'svm':
-            classifier = Pipeline([('vec', vec), ('cls', SVC(probability=True, kernel='rbf'))])
-            # linear 0.9058333333333334
-            #rbf
+            classifier = Pipeline([('vec', vec), ('cls', SVC(probability=True, kernel='linear'))])
         case 'knn':
             classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean'))])
         case 'dt':
