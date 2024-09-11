@@ -161,7 +161,9 @@ if __name__ == "__main__":
                 'cls__fit_prior': [True, False]
             }
         case 'svm':
-            classifier = Pipeline([('vec', vec), ('cls', SVC(probability=True, kernel='linear'))])
+            classifier = Pipeline([('vec', vec), ('cls', SVC(probability=True, kernel='rbf'))])
+            # linear 0.9058333333333334
+            #rbf
         case 'knn':
             classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean'))])
         case 'dt':
@@ -172,8 +174,7 @@ if __name__ == "__main__":
             classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(voting='soft', estimators=[
                 ('nb', MultinomialNB()),
                 ('svm', SVC(probability=True, kernel='linear')), 
-                ('svm', SVC(kernel='linear', probability=True)),
-                ('knn', KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean')),
+                ('knn', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean')),
                 # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
             ]))])
