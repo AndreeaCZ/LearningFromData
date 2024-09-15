@@ -186,14 +186,19 @@ def main():
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
-    # leave param grid empty, because we have already found the best hyperparameter values
-    param_search = GridSearchCV(classifier, param_grid={}, cv=5, n_jobs=-1, verbose=2)
+    # Below is the grid search implementation.
+    # param_grid is a dictionary of hyperparameter value lists for the classifier.
+    # param_search = GridSearchCV(classifier, param_grid={}, cv=1, n_jobs=-1, verbose=2)
+    # param_search.fit(X_train, Y_train)
+    # print("\nBest parameters set found on training set:")
+    # print(param_search.best_params_)
+    # print("\nMaximum accuracy found on training set:")
+    # print(param_search.best_score_)
+    # Y_pred = param_search.predict(X_test)
 
-    # Fit the model
-    param_search.fit(X_train, Y_train)
+    classifier.fit(X_train, Y_train)
+    Y_pred = classifier.predict(X_test)
 
-    # Classify the test set and calculate the classification report (confusion matrix, precision, recall, f1-score)
-    Y_pred = param_search.predict(X_test)
     print("\nClassification Report:")
     print(classification_report(Y_test, Y_pred))
 
