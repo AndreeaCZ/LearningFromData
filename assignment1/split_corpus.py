@@ -3,6 +3,9 @@ import random
 
 
 def create_arg_parser():
+    """
+    Create argument parser with all necessary arguments.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--corpus_file", default='reviews.txt', type=str,
                         help="Corpus file to split into train/dev/test (default reviews.txt)")
