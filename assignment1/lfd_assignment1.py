@@ -8,9 +8,11 @@ To run the program with the best settings as found by the feature testing, use t
 
 python lfd_assignment1.py -t <path/to/training/file> -d <path/to/testing/file> -c all
 
+The code was tested with Python 3.12, compatibility with other versions is not guaranteed.
+
 The output will be a classification report showing the precision, recall, and f1-score for each class
 as well as the overall accuracy. Note that the script can take over a minute to run because it uses
-multiple machine learning models.
+multiple machine learning models in an ensemble.
 """
 
 import argparse
