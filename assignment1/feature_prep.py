@@ -1,5 +1,4 @@
 import ssl
-from itertools import product
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import classification_report
@@ -156,6 +155,9 @@ snowball_stemmer = SnowballStemmer("english")
 
 
 def test_preprocessing(X_train, Y_train, X_test, Y_test, tokenizer):
+    """
+    Uses GridSearchCV to test different preprocessing functions.
+    """
     vectorizer = CountVectorizer(max_df=0.9, ngram_range=(1, 1), max_features=10000, tokenizer=tokenizer)
 
     pipeline = Pipeline([
@@ -168,4 +170,3 @@ def test_preprocessing(X_train, Y_train, X_test, Y_test, tokenizer):
     }
 
     test_grid(X_train, Y_train, X_test, Y_test, pipeline, param_grid)
-

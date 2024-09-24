@@ -1,23 +1,34 @@
-# !/usr/bin/env python
+"""
+This script is used to train and evaluate a classifier on a set of product reviews.
+The script takes in multiple commandline parameters to specify the training and evaluation data,
+the classifier to use, and whether to perform sentiment analysis (2-class problem) or
+product category classification (6-class problem).
 
-'''TODO: add high-level description of this Python script'''
+To run the program with the best settings as found by the feature testing, use the following command:
+
+python lfd_assignment1.py -t <path/to/training/file> -d <path/to/testing/file> -c all
+
+The code was tested with Python 3.12, compatibility with other versions is not guaranteed.
+
+The output will be a classification report showing the precision, recall, and f1-score for each class
+as well as the overall accuracy. Note that the script can take over a minute to run because it uses
+multiple machine learning models in an ensemble.
+"""
 
 import argparse
 import re
-from random import randint
 
-from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, classification_report
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from feature_prep import test_vec_parameters, test_combining_vecs, test_preprocessing
-from sklearn.model_selection import GridSearchCV
 
 
 def create_arg_parser():
@@ -36,11 +47,8 @@ def create_arg_parser():
                         help="Do sentiment analysis (2-class problem)")
     parser.add_argument('-features', '--test_features', action='store_true',
                         help='Test the best way to prepare the features.')
-    # parser.add_argument('-v', '--vectorizer', default='count', type=str,
-    #                     help='The vectorizer to be used for the features (default count).')
     parser.add_argument("-c", "--classifier", default='nb',
                         help="Classifier to use (default Naive Bayes)")
-
     args = parser.parse_args()
     return args
 
@@ -129,14 +137,16 @@ def get_default_vectorizer():
     )
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Main function to run the script.
+    """
     args = create_arg_parser()
 
-    # TODO: comment
     X_train, Y_train = read_corpus(args.train_file, args.sentiment)
     X_test, Y_test = read_corpus(args.dev_file, args.sentiment)
 
-    # This takes a very long time to run!
+    # Run the feature preprocessing
     if args.test_features:
         test_vec_parameters(
             X_train,
@@ -152,42 +162,48 @@ if __name__ == "__main__":
 
     vec = get_default_vectorizer()
 
-    param_dist = {}
+    # Choose the classifier
     match args.classifier:
         case 'nb':
             classifier = Pipeline([('vec', vec), ('cls', MultinomialNB())])
-            param_dist = {
-                'cls__alpha': [0.1, 0.5, 1, 2, 5],
-                'cls__fit_prior': [True, False]
-            }
         case 'svm':
             classifier = Pipeline([('vec', vec), ('cls', SVC(probability=True, kernel='linear'))])
         case 'knn':
-            classifier = Pipeline([('vec', vec), ('cls', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean'))])
+            classifier = Pipeline(
+                [('vec', vec), ('cls', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean'))])
         case 'dt':
             classifier = Pipeline([('vec', vec), ('cls', DecisionTreeClassifier(max_depth=30))])
         case 'rf':
-            classifier = Pipeline([('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
+            classifier = Pipeline(
+                [('vec', vec), ('cls', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))])
         case 'all':
+            # Combine all classifiers into a voting classifier
+            # Except DT, because it performs poorly
             classifier = Pipeline([('vec', vec), ('cls', VotingClassifier(voting='soft', estimators=[
                 ('nb', MultinomialNB()),
-                ('svm', SVC(probability=True, kernel='linear')), 
+                ('svm', SVC(probability=True, kernel='linear')),
                 ('knn', KNeighborsClassifier(n_neighbors=11, weights='distance', metric='euclidean')),
-                # ('dt', DecisionTreeClassifier(max_depth=30)),
                 ('rf', RandomForestClassifier(n_estimators=500, max_depth=40, min_samples_leaf=2))
             ]))])
         case _:
             raise ValueError(f"Invalid classifier: {args.classifier}")
 
-    param_search = GridSearchCV(classifier, param_grid=param_dist, cv=5, n_jobs=-1, verbose=2)
+    # Below is the grid search implementation.
+    # param_grid is a dictionary of hyperparameter value lists for the classifier.
+    # param_search = GridSearchCV(classifier, param_grid={}, cv=1, n_jobs=-1, verbose=2)
+    # param_search.fit(X_train, Y_train)
+    # print("\nBest parameters set found on training set:")
+    # print(param_search.best_params_)
+    # print("\nMaximum accuracy found on training set:")
+    # print(param_search.best_score_)
+    # Y_pred = param_search.predict(X_test)
 
-    param_search.fit(X_train, Y_train)
+    classifier.fit(X_train, Y_train)
+    Y_pred = classifier.predict(X_test)
 
-    print("\nBest parameters set found on development set:")
-    print(param_search.best_params_)
-    print("\nMaximum accuracy found on training set:")
-    print(param_search.best_score_)
-
-    Y_pred = param_search.predict(X_test)
     print("\nClassification Report:")
     print(classification_report(Y_test, Y_pred))
+
+
+if __name__ == "__main__":
+    main()
