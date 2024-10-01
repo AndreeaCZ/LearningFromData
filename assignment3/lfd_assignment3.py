@@ -86,7 +86,7 @@ def create_model(Y_train, emb_matrix):
     model = Sequential()
     model.add(Embedding(num_tokens, embedding_dim, embeddings_initializer=Constant(emb_matrix),trainable=True))
     # Adding an extra dense layer
-    # model.add(Dense(128, activation='relu'))
+    model.add(Dense(128, activation='relu'))
     # Adding one LSTM layer
     model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2)))
     # model.add(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
