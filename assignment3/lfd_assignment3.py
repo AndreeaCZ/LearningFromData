@@ -7,13 +7,13 @@ import json
 import argparse
 import numpy as np
 from keras.src.models import Sequential
-from keras.src.layers import Dense, Embedding, LSTM
+from keras.src.layers import Dense, Embedding, LSTM, Bidirectional
 from keras.src.initializers import Constant
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelBinarizer
-from keras.src.optimizers import SGD
+from keras.src.optimizers import SGD, Adam, RMSprop
 from keras.src.layers import TextVectorization
-import keras as kr
+from keras import callbacks
 import tensorflow as tf
 # Make reproducible as much as possible
 np.random.seed(1234)
@@ -74,44 +74,53 @@ def get_emb_matrix(voc, emb):
 def create_model(Y_train, emb_matrix):
     '''Create the Keras model to use'''
     # Define settings, you might want to create cmd line args for them
-    learning_rate = 0.01
+    learning_rate = 0.001
     loss_function = 'categorical_crossentropy'
-    optim = SGD(learning_rate=learning_rate)
+    # optim = Adam(learning_rate=learning_rate)
+    optim = RMSprop(learning_rate=learning_rate)
     # Take embedding dim and size from emb_matrix
     embedding_dim = len(emb_matrix[0])
     num_tokens = len(emb_matrix)
     num_labels = len(set(Y_train))
     # Now build the model
     model = Sequential()
-    model.add(Embedding(num_tokens, embedding_dim, embeddings_initializer=Constant(emb_matrix),trainable=False))
+    model.add(Embedding(num_tokens, embedding_dim, embeddings_initializer=Constant(emb_matrix),trainable=True))
+    # Adding an extra dense layer
+    # model.add(Dense(128, activation='relu'))
+    # Adding one LSTM layer
+    model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2)))
+    # model.add(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
     # Here you should add LSTM layers (and potentially dropout)
-    raise NotImplementedError("Add LSTM layer(s) here")
+    model.add(Bidirectional(LSTM(32, return_sequences=False, dropout=0.2, recurrent_dropout=0.2)))
+    # model.add(LSTM(32,return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
+    # raise NotImplementedError("Add LSTM layer(s) here")
     # Ultimately, end with dense layer with softmax
     model.add(Dense(input_dim=embedding_dim, units=num_labels, activation="softmax"))
     # Compile model using our settings, check for accuracy
     model.compile(loss=loss_function, optimizer=optim, metrics=['accuracy'])
+    # print(f'Embedding dimension: {embedding_dim} \n')
+    # print(f'Number tokens: {num_tokens} \n')
     return model
 
 
-def train_model(model, X_train, Y_train, X_dev, Y_dev):
+def train_model(model, X_train, Y_train, X_dev, Y_dev, encoder):
     '''Train the model here. Note the different settings you can experiment with!'''
     # Potentially change these to cmd line args again
     # And yes, don't be afraid to experiment!
     verbose = 1
-    batch_size = 16
+    batch_size = 32
     epochs = 50
     # Early stopping: stop training when there are three consecutive epochs without improving
     # It's also possible to monitor the training loss with monitor="loss"
-    # callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-    callback = kr.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    callback = callbacks.EarlyStopping(monitor='val_loss', patience=3)
     # Finally fit the model to our data
     model.fit(X_train, Y_train, verbose=verbose, epochs=epochs, callbacks=[callback], batch_size=batch_size, validation_data=(X_dev, Y_dev))
     # Print final accuracy for the model (clearer overview)
-    test_set_predict(model, X_dev, Y_dev, "dev")
+    test_set_predict(model, X_dev, Y_dev, "dev", encoder)
     return model
 
 
-def test_set_predict(model, X_test, Y_test, ident):
+def test_set_predict(model, X_test, Y_test, ident, encoder):
     '''Do predictions and measure accuracy on our own test set (that we split off train)'''
     # Get predictions using the trained model
     Y_pred = model.predict(X_test)
@@ -120,6 +129,10 @@ def test_set_predict(model, X_test, Y_test, ident):
     # If you have gold data, you can calculate accuracy
     Y_test = np.argmax(Y_test, axis=1)
     print('Accuracy on own {1} set: {0}'.format(round(accuracy_score(Y_test, Y_pred), 3), ident))
+    
+    target_names = encoder.classes_
+    report = classification_report(Y_test, Y_pred, target_names = target_names)
+    print(f'Classification Report for {ident} set:\n{report}')
 
 
 def main():
@@ -132,7 +145,7 @@ def main():
     embeddings = read_embeddings(args.embeddings)
 
     # Transform words to indices using a vectorizer
-    vectorizer = TextVectorization(standardize=None, output_sequence_length=50)
+    vectorizer = TextVectorization(standardize=None, output_sequence_length=10)
     # Use train and dev to create vocab - could also do just train
     text_ds = tf.data.Dataset.from_tensor_slices(X_train + X_dev)
     vectorizer.adapt(text_ds)
@@ -153,7 +166,7 @@ def main():
     X_dev_vect = vectorizer(np.array([[s] for s in X_dev])).numpy()
 
     # Train the model
-    model = train_model(model, X_train_vect, Y_train_bin, X_dev_vect, Y_dev_bin)
+    model = train_model(model, X_train_vect, Y_train_bin, X_dev_vect, Y_dev_bin, encoder)
 
     # Do predictions on specified test set
     if args.test_file:
@@ -162,7 +175,7 @@ def main():
         Y_test_bin = encoder.fit_transform(Y_test)
         X_test_vect = vectorizer(np.array([[s] for s in X_test])).numpy()
         # Finally do the predictions
-        test_set_predict(model, X_test_vect, Y_test_bin, "test")
+        test_set_predict(model, X_test_vect, Y_test_bin, "test", encoder)
 
 if __name__ == '__main__':
     main()
