@@ -84,22 +84,20 @@ def create_model(Y_train, emb_matrix):
     num_labels = len(set(Y_train))
     # Now build the model
     model = Sequential()
-    model.add(Embedding(num_tokens, embedding_dim, embeddings_initializer=Constant(emb_matrix),trainable=True))
+    model.add(Embedding(num_tokens, embedding_dim,embeddings_initializer=Constant(emb_matrix), trainable=True))
     # Adding an extra dense layer
     model.add(Dense(128, activation='relu'))
     # Adding one LSTM layer
-    model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2)))
-    # model.add(LSTM(64, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
+    model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.3, recurrent_dropout=0.3)))
+    # model.add(LSTM(64, return_sequences=True, dropout=0.5))
     # Here you should add LSTM layers (and potentially dropout)
-    model.add(Bidirectional(LSTM(32, return_sequences=False, dropout=0.2, recurrent_dropout=0.2)))
-    # model.add(LSTM(32,return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
+    model.add(Bidirectional(LSTM(32, return_sequences=False, dropout=0.3, recurrent_dropout=0.3)))
+    # model.add(LSTM(32,return_sequences=False, dropout=0.5))
     # raise NotImplementedError("Add LSTM layer(s) here")
     # Ultimately, end with dense layer with softmax
     model.add(Dense(input_dim=embedding_dim, units=num_labels, activation="softmax"))
     # Compile model using our settings, check for accuracy
     model.compile(loss=loss_function, optimizer=optim, metrics=['accuracy'])
-    # print(f'Embedding dimension: {embedding_dim} \n')
-    # print(f'Number tokens: {num_tokens} \n')
     return model
 
 
@@ -145,7 +143,7 @@ def main():
     embeddings = read_embeddings(args.embeddings)
 
     # Transform words to indices using a vectorizer
-    vectorizer = TextVectorization(standardize=None, output_sequence_length=10)
+    vectorizer = TextVectorization(standardize=None, output_sequence_length=50)
     # Use train and dev to create vocab - could also do just train
     text_ds = tf.data.Dataset.from_tensor_slices(X_train + X_dev)
     vectorizer.adapt(text_ds)
