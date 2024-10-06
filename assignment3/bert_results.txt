@@ -105,3 +105,53 @@ Validation Accuracy: 0.9366666666666666
    macro avg       0.94      0.93      0.93       600
 weighted avg       0.94      0.94      0.94       600
 
+
+On the TEST dataset:
+Results for: max_seq_len=512, learning_rate=1e-05, batch_size=16, epochs=2
+Validation Accuracy: 0.9566666666666667
+              precision    recall  f1-score   support
+
+           0       0.95      0.97      0.96       102
+           1       0.98      0.88      0.93        94
+           2       0.98      0.97      0.98       110
+           3       0.91      0.99      0.95       105
+           4       0.97      0.96      0.96        91
+           5       0.96      0.96      0.96        98
+
+    accuracy                           0.96       600
+   macro avg       0.96      0.96      0.96       600
+weighted avg       0.96      0.96      0.96       600
+
+
+Scheduler:
+Results for: max_seq_len=256, learning_rate=0.0001, batch_size=16, epochs=2
+Validation Accuracy: 0.9516666666666667
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.97        90
+           1       0.93      0.92      0.92       112
+           2       0.96      0.95      0.96       101
+           3       0.94      0.95      0.94        94
+           4       1.00      0.98      0.99       114
+           5       0.90      0.94      0.92        89
+
+    accuracy                           0.95       600
+   macro avg       0.95      0.95      0.95       600
+weighted avg       0.95      0.95      0.95       600
+
+
+On the TEST set with scheduler:
+Results for: max_seq_len=256, learning_rate=0.0001, batch_size=16, epochs=2
+Validation Accuracy: 0.96
+              precision    recall  f1-score   support
+
+           0       0.96      0.97      0.97       102
+           1       0.93      0.96      0.94        94
+           2       0.96      0.97      0.97       110
+           3       0.96      0.94      0.95       105
+           4       0.98      0.98      0.98        91
+           5       0.97      0.94      0.95        98
+
+    accuracy                           0.96       600
+   macro avg       0.96      0.96      0.96       600
+weighted avg       0.96      0.96      0.96       600
