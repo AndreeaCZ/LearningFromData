@@ -1,6 +1,24 @@
-#!/usr/bin/env python
+"""
+This script trains and evaluates an LSTM performance on multi-classes text clasification.
+The hyperparameters in this script are static, which means cannot be changed through the command line.
 
-'''TODO: add high-level description of this Python script'''
+There are two ways to run the script, use the following command:
+
+To validate the performance of the LSTM:
+python lfd_assignment3.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviewes/file>
+
+To check the performance of LSTM on the test set:
+python lfd_assignment3.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviewes/file> 
+--test_file <path/to/testing/file>
+
+The code was tested with Python 3.11.7
+
+The output will be a classification report showing the precision, recall, and f1-score for each class
+and the overall accuracy. Since the script may need a few minutes to run the classification, 
+running it on Google Colab or Habrok is suggested.
+"""
+
+
 
 import random as python_random
 import json
@@ -76,7 +94,6 @@ def create_model(Y_train, emb_matrix):
     # Define settings, you might want to create cmd line args for them
     learning_rate = 0.001
     loss_function = 'categorical_crossentropy'
-    # optim = Adam(learning_rate=learning_rate)
     optim = RMSprop(learning_rate=learning_rate)
     # Take embedding dim and size from emb_matrix
     embedding_dim = len(emb_matrix[0])
@@ -87,14 +104,10 @@ def create_model(Y_train, emb_matrix):
     model.add(Embedding(num_tokens, embedding_dim,embeddings_initializer=Constant(emb_matrix), trainable=True))
     # Adding an extra dense layer
     model.add(Dense(128, activation='relu'))
-    # Adding one LSTM layer
-    model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.3, recurrent_dropout=0.3)))
-    # model.add(LSTM(64, return_sequences=True, dropout=0.5))
-    # Here you should add LSTM layers (and potentially dropout)
+    # Adding two Bidirectional LSTM layers
+    model.add(Bidirectional(LSTM(64, return_sequences=True, dropout=0.5, recurrent_dropout=0.5)))
     model.add(Bidirectional(LSTM(32, return_sequences=False, dropout=0.3, recurrent_dropout=0.3)))
-    # model.add(LSTM(32,return_sequences=False, dropout=0.5))
-    # raise NotImplementedError("Add LSTM layer(s) here")
-    # Ultimately, end with dense layer with softmax
+    # Output layer
     model.add(Dense(input_dim=embedding_dim, units=num_labels, activation="softmax"))
     # Compile model using our settings, check for accuracy
     model.compile(loss=loss_function, optimizer=optim, metrics=['accuracy'])
@@ -103,8 +116,6 @@ def create_model(Y_train, emb_matrix):
 
 def train_model(model, X_train, Y_train, X_dev, Y_dev, encoder):
     '''Train the model here. Note the different settings you can experiment with!'''
-    # Potentially change these to cmd line args again
-    # And yes, don't be afraid to experiment!
     verbose = 1
     batch_size = 32
     epochs = 50
