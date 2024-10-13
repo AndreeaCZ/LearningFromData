@@ -1,7 +1,13 @@
 """
 This script trains a pre-trained model on a multi-class text classification task.
-"""
 
+To run it, use the following command:
+python models.py --train_file <path/to/training/file> --dev_file <path/to/dev/file> --lm <pre-trained-model-name>
+
+where the model name is a huggingface model name, e.g., bert-base-uncased, roberta-base, etc.
+
+The output is a classification report showing the precision, recall, and f1-score for each class on the dev set.
+"""
 
 import argparse
 from transformers import TFAutoModelForSequenceClassification
@@ -49,7 +55,6 @@ parser = create_arg_parser()
 X_train, Y_train = read_corpus(parser.train_file)
 X_dev, Y_dev = read_corpus(parser.dev_file)
 
-
 encoder = LabelBinarizer()
 Y_train_bin = encoder.fit_transform(Y_train)  # Use encoder.classes_ to find mapping back
 Y_dev_bin = encoder.transform(Y_dev)
@@ -57,11 +62,8 @@ Y_dev_bin = encoder.transform(Y_dev)
 lm = parser.lm
 tokenizer = AutoTokenizer.from_pretrained(lm)
 model = TFAutoModelForSequenceClassification.from_pretrained(lm, num_labels=6, from_pt=True)
-tokens_train = tokenizer(X_train, padding=True, max_length=512,
-truncation=True, return_tensors="tf").data
-tokens_dev = tokenizer(X_dev, padding=True, max_length=512,
-truncation=True, return_tensors="tf").data
-
+tokens_train = tokenizer(X_train, padding=True, max_length=512, truncation=True, return_tensors="tf").data
+tokens_dev = tokenizer(X_dev, padding=True, max_length=512, truncation=True, return_tensors="tf").data
 
 loss_function = CategoricalCrossentropy(from_logits=True)
 optim = Adam(learning_rate=1e-5)
