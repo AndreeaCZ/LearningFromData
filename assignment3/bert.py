@@ -1,3 +1,15 @@
+"""
+This script trains a pre-trained model on a multi-class text classification task.
+It was used to experiment with different hyperparameter values for the BERT model.
+
+To run it, use the following command:
+python bert.py --train_file <path/to/training/file> --dev_file <path/to/dev/file>
+
+The output is a classification report showing the precision, recall, and f1-score for each class on the dev set.
+As it is using deep learning models, a machine with a compatible GPU is recommended otherwise it may take a long time
+to run.
+"""
+
 from tensorflow.keras.callbacks import LearningRateScheduler
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
 from transformers import TFAutoModelForSequenceClassification
@@ -9,6 +21,20 @@ from sklearn.preprocessing import LabelBinarizer
 from tensorflow_models.optimization.lr_schedule import LinearWarmup
 import itertools
 import csv
+import argparse
+
+
+def create_arg_parser():
+    """
+    Create argument parser with all necessary arguments.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--train_file", default='train.txt', type=str,
+                        help="Input file to learn from (default train.txt)")
+    parser.add_argument("-d", "--dev_file", type=str, default='dev.txt',
+                        help="Separate dev set to read in (default dev.txt)")
+    args = parser.parse_args()
+    return args
 
 
 def read_corpus(corpus_file):
@@ -72,8 +98,9 @@ def train_and_evaluate(X_train, Y_train, X_dev, Y_dev, max_seq_len, learning_rat
 
 def main():
     """Use the train and dev corpora to train and evaluate a BERT model."""
-    X_train, Y_train = read_corpus('train.txt')
-    X_dev, Y_dev = read_corpus('dev.txt')
+    parser = create_arg_parser()
+    X_train, Y_train = read_corpus(parser.train_file)
+    X_dev, Y_dev = read_corpus(parser.dev_file)
 
     train_and_evaluate(X_train, Y_train, X_dev, Y_dev, 512, 1e-5, 16, 2, False)
 
