@@ -1,5 +1,6 @@
 """
 This script trains a pre-trained model on a multi-class text classification task.
+It was used to compare the performance of various base models from Huggingface's transformers library.
 
 To run it, use the following command:
 python models.py --train_file <path/to/training/file> --dev_file <path/to/dev/file> --lm <pre-trained-model-name>
@@ -7,6 +8,8 @@ python models.py --train_file <path/to/training/file> --dev_file <path/to/dev/fi
 where the model name is a huggingface model name, e.g., bert-base-uncased, roberta-base, etc.
 
 The output is a classification report showing the precision, recall, and f1-score for each class on the dev set.
+As it is using deep learning models, a machine with a compatible GPU is recommended otherwise it may take a long time
+to run.
 """
 
 import argparse
@@ -73,5 +76,5 @@ model.fit(tokens_train, Y_train_bin, verbose=1, epochs=2, batch_size=16, validat
 
 Y_pred = model.predict(tokens_dev)["logits"]
 
-# print accuracy and fscore
+# print classification report
 print(classification_report(Y_dev_bin.argmax(axis=1), Y_pred.argmax(axis=1)))
