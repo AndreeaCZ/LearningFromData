@@ -28,9 +28,9 @@ np.random.seed(42)
 
 
 def create_arg_parser():
-    '''
+    """
     Create argument parser with all necessary arguments.
-    '''
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--train_file", default='train.txt', type=str,
                         help="Input file to learn from (default train.txt)")
@@ -42,7 +42,9 @@ def create_arg_parser():
 
 
 def read_corpus(corpus_file):
-    '''Read in review data set and returns docs and labels'''
+    """
+    Read in review data set and returns docs and labels
+    """
     documents = []
     labels = []
     with open(corpus_file, encoding='utf-8') as f:
