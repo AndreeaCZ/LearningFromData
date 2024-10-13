@@ -1,14 +1,14 @@
 """
-This script trains and evaluates an LSTM performance on multi-classes text clasification.
+This script trains and evaluates an LSTM performance on multi-class text classification.
 The hyperparameters in this script are static, which means cannot be changed through the command line.
 
 There are two ways to run the script, use the following command:
 
 To validate the performance of the LSTM:
-python lfd_assignment3.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviewes/file>
+python lstm.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviews/file>
 
 To check the performance of LSTM on the test set:
-python lfd_assignment3.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviewes/file> 
+python lstm.py --train_file <path/to/training/file> ---dev_file <path/to/dev/file> --embeddings <path/to/glove_reviews/file>
 --test_file <path/to/testing/file>
 
 The code was tested with Python 3.11.7
@@ -17,8 +17,6 @@ The output will be a classification report showing the precision, recall, and f1
 and the overall accuracy. Since the script may need a few minutes to run the classification, 
 running it on Google Colab or Habrok is suggested.
 """
-
-
 
 import random as python_random
 import json
